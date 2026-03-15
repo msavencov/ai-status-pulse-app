@@ -63,6 +63,27 @@ uv run prek run --all-files            # Run manually on all files
 
 Linters: ruff (Python), biome (frontend). Both run via prek on commit.
 
+### Testing
+
+```bash
+# Backend (requires PostgreSQL running)
+cd backend && pytest                          # All tests
+cd backend && pytest tests/api/routes/test_services.py  # Single file
+cd backend && pytest -x                       # Stop on first failure
+
+# Frontend E2E (Playwright, requires full stack running)
+cd frontend && bunx playwright test           # All E2E tests
+cd frontend && bunx playwright test --ui      # Interactive UI mode
+cd frontend && bunx playwright test tests/login.spec.ts  # Single file
+```
+
+**ПРАВИЛО: тесты перед деплоем.** Всегда запускай тесты локально перед push/deploy:
+1. **Developer** пишет код → пишет/адаптирует тесты → запускает локально
+2. **DevOps** перед деплоем проверяет: тесты проходят? → только тогда push
+3. **CI/CD (GitHub Actions)** — автоматический прогон после push (test-backend, playwright)
+
+Тестовый workflow: `локальные тесты → push → CI/CD тесты → deploy`
+
 ## Architecture
 
 ### Frontend (`frontend/`)
@@ -219,3 +240,5 @@ docs/
 - Изменения в CI/CD, Docker, инфраструктуре
 
 Формат записи: `[YYYY-MM-DD] action — description`
+
+**АВТОМАТИЧЕСКОЕ ОБНОВЛЕНИЕ:** При любом значимом изменении проекта (новая фича, деплой, новый агент, MCP, команда, структурное изменение) — ОБНОВЛЯЙ `status-process.md` автоматически, без запроса пользователя. Добавляй запись в Changelog и обновляй соответствующую секцию (URLs, Agents, Commands, MCP). Этот файл используется для демки и как основной источник истории проекта.
