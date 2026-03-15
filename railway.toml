@@ -1,5 +1,5 @@
 [build]
-dockerfilePath = "backend/Dockerfile"
+dockerfilePath = "backend/Dockerfile.railway"
 
 [deploy]
 healthcheckPath = "/api/v1/utils/health-check/"
