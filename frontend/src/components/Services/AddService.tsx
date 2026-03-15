@@ -34,7 +34,7 @@ const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   url: z.string().url({ message: "Must be a valid URL" }),
   category: z.string().min(1, { message: "Category is required" }),
-  check_interval: z.coerce.number().min(10).max(3600).default(60),
+  check_interval: z.coerce.number().min(10).max(3600),
 })
 
 type FormData = z.infer<typeof formSchema>

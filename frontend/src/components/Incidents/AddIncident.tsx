@@ -41,7 +41,7 @@ import { handleError } from "@/utils"
 const formSchema = z.object({
   service_id: z.string().uuid({ message: "Select a service" }),
   title: z.string().min(1, { message: "Title is required" }),
-  status: z.enum(["investigating", "identified", "monitoring", "resolved"]).default("investigating"),
+  status: z.enum(["investigating", "identified", "monitoring", "resolved"]),
 })
 
 type FormData = z.infer<typeof formSchema>

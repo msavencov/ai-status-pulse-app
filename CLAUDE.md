@@ -170,6 +170,25 @@ docs/
 
 Справочник по frontmatter субагентов: `docs/help/subagent-frontmatter-reference.md`
 
+## Agent Learnings (самоулучшение агентов)
+
+**Путь:** `docs/agent-learnings/<agent-name>/YYYY-MM-DD_short-slug.md`
+**Описание системы:** `docs/agent-learnings/README.md`
+
+**ОБЯЗАТЕЛЬНОЕ ПРАВИЛО — для Claude и ВСЕХ субагентов:**
+
+Когда ты или субагент сталкиваетесь с ошибкой, ограничением сервиса или находите неочевидный workaround при работе с инфраструктурой, деплоем, MCP, CLI или внешними сервисами:
+
+1. **Создай файл** в `docs/agent-learnings/<agent-name>/YYYY-MM-DD_slug.md`
+2. **Заполни** по формату: frontmatter (date, agent, service, severity, status) + контекст → ошибка → причина → workaround → рекомендация для промпта
+3. **Обнови индекс** в `docs/agent-learnings/README.md`
+
+**Severity:** `blocker` (остановил работу), `workaround` (обошли), `insight` (полезное наблюдение)
+**Status:** `open` → `resolved` → `incorporated` (промпт обновлён)
+
+**При вызове субагентов** через Agent tool — ПЕРЕДАВАЙ эту инструкцию в prompt:
+> Если столкнёшься с ошибкой или ограничением сервиса — создай запись в `docs/agent-learnings/<твоё-имя>/YYYY-MM-DD_slug.md` по формату из `docs/agent-learnings/README.md`.
+
 ## Deployment
 
 - **Frontend** → Vercel (static Vite build, CDN)
