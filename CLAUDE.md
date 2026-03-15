@@ -6,6 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Full-stack web app based on the FastAPI template. Python/FastAPI backend + React/TypeScript frontend. Monorepo managed with Bun (frontend) and uv (backend).
 
+## Custom Commands
+
+### `/save-session` — Сохранить историю сессии
+Создаёт детальную выжимку текущего чата в `session-history/YYYY-MM-DD_HH-MM_slug.md`.
+Вызывай в конце сессии перед переходом в новый чат.
+
+## Session History (`session-history/`)
+
+Папка с выжимками прошлых сессий. **При старте новой сессии** — если пользователь просит "прочитай последний session history", прочитай последний файл из этой папки для контекста.
+
+---
+
 ## Commands
 
 ### Full Stack (Docker)

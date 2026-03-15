@@ -34,7 +34,7 @@ const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   url: z.string().url({ message: "Must be a valid URL" }),
   category: z.string().min(1, { message: "Category is required" }),
-  check_interval: z.coerce.number().min(10).max(3600),
+  check_interval: z.number().min(10).max(3600),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -141,7 +141,7 @@ const AddService = () => {
                   <FormItem>
                     <FormLabel>Check Interval (seconds)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
