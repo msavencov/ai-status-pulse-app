@@ -115,3 +115,4 @@
 | 2026-03-16 | Docs created | `docs/ADR/` — 4 ADR (deploy split, Dockerfile, MCP+CLI, no-signup) |
 | 2026-03-16 | CLAUDE.md | Секция Conventions & ADR, логика работы агентов с conventions/ADR |
 | 2026-03-16 | Agent updated | DevOps промпт + манифест обновлены: ссылки на conventions/ADR |
+| 2026-03-16 | Git cleanup | git push origin master; удалены все remote ветки кроме master (13 веток: dependabot/* + feature ветки) |
