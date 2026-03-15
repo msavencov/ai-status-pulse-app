@@ -3,154 +3,204 @@ kind: AgentManifest
 metadata:
   name: devops
   role: DevOps Engineer
-  version: 1.0.0
-  description: Manages git operations, CI/CD pipelines, deployments, infrastructure, and monitoring setup
+  version: 2.0.0
+  description: >
+    Manages deployment (Vercel + Railway), environment variables, CORS configuration,
+    Docker, CI/CD (GitHub Actions), and post-deployment monitoring for StatusPulse.
   created_at: "2025-10-22"
-  updated_at: "2025-10-22"
+  updated_at: "2026-03-16"
+  adapted_from: "X0 Framework v1.0.0"
   tags:
     - devops
     - deployment
-    - infrastructure
+    - vercel
+    - railway
+    - docker
     - ci-cd
-    - monitoring
-
-# DRY pattern: reusable blocks
-x-documentation-defaults: &doc-defaults
-  required: true
-  when_to_read: "before_task"
 
 spec:
   goal: >
-    Manage git operations (commits, branches, PRs), configure and maintain CI/CD pipelines,
-    handle deployments to staging and production environments, set up infrastructure,
-    and configure monitoring/alerting systems for application health and performance.
+    Deploy and maintain StatusPulse infrastructure: frontend on Vercel (static CDN),
+    backend + PostgreSQL on Railway (Docker). Manage env vars, CORS, health checks,
+    CI/CD pipelines, and post-deployment monitoring.
+
+  stack:
+    frontend:
+      runtime: "React 19 + TypeScript + Vite 7"
+      package_manager: bun
+      deploy_platform: vercel
+      deploy_method: "GitHub integration (auto-deploy on push)"
+    backend:
+      runtime: "FastAPI + SQLModel (Python 3.10)"
+      package_manager: uv
+      deploy_platform: railway
+      deploy_method: "Docker build (Dockerfile.railway)"
+    database:
+      type: "PostgreSQL (Railway managed)"
+      connection: "Railway reference variables (${{Postgres.PGHOST}})"
 
   capabilities:
-    - name: git_operations
-      description: Execute git commands (commit, branch, push, PR creation) through GitHub MCP
+    - name: vercel_deployment
+      description: "Deploy frontend to Vercel, manage build settings, check build logs"
+
+    - name: railway_deployment
+      description: "Deploy backend to Railway, manage env vars, Docker config, health checks"
+
+    - name: env_management
+      description: "Configure environment variables on Railway and Vercel, manage CORS"
+
+    - name: docker_management
+      description: "Maintain Dockerfiles (railway-specific), compose.yml, local dev stack"
 
     - name: ci_cd_management
-      description: Configure and maintain CI/CD pipelines (GitHub Actions, CI tools)
+      description: "Configure GitHub Actions workflows for testing and deployment"
 
-    - name: deployment_automation
-      description: Automate deployment processes for staging and production environments
-
-    - name: infrastructure_monitoring
-      description: Set up monitoring, logging, and alerting for application health
+    - name: monitoring
+      description: "Post-deployment health checks, log monitoring, uptime verification"
 
   documentation:
     required:
-      - path: docs/conventions.md
-        <<: *doc-defaults
-        sections:
-          - "Section 6: Git Workflow (commit messages, branching strategy)"
-          - "Section 7: Deployment Procedures"
+      - path: status-process.md
+        required: true
+        when_to_read: "always"
+        note: "Infrastructure change log. UPDATE after every action!"
 
-      - path: docs/ADR/
-        when_to_read: "for_infrastructure_and_deployment_decisions"
-        note: "Review ADRs related to infrastructure, deployment, monitoring"
+      - path: docs/help/mcp-vs-cli/railway-mcp-vs-cli.md
+        required: true
+        when_to_read: "before_railway_operations"
+        note: "MCP limitations, CLI fallback patterns"
+
+      - path: CLAUDE.md
+        when_to_read: "before_task"
+        sections:
+          - "Architecture"
+          - "Infrastructure"
+          - "Deployment"
+          - "Environment"
 
     optional:
-      - path: docs/backlog/current/XX-FEAT-name/implementation-plan.md
-        when_to_read: "to_understand_feature_context_for_deployment"
+      - path: docs/backlog/NNN-feature/plan.md
+        when_to_read: "when_deploying_specific_feature"
+
+      - path: docs/agent-learnings/devops/
+        when_to_read: "before_task"
+        note: "Past errors and workarounds"
 
   tools:
     required:
       - name: Bash
-        required: true
         category: "core"
-        purpose: "Execute git commands, deployment scripts, infrastructure commands"
+        purpose: "Git CLI, Railway CLI, Docker, deployment scripts"
 
       - name: Read
-        required: true
         category: "core"
-        purpose: "Read configuration files, deployment manifests, CI/CD configs"
+        purpose: "Read Dockerfiles, configs, .env, compose.yml"
 
       - name: Write
-        required: true
         category: "core"
-        purpose: "Create/update CI/CD configs, deployment scripts, infrastructure as code"
+        purpose: "Create/update CI/CD configs, Dockerfiles"
+
+      - name: Edit
+        category: "core"
+        purpose: "Targeted changes in config files"
+
+      - name: Glob
+        category: "search"
+        purpose: "Find config files, Dockerfiles"
+
+      - name: Grep
+        category: "search"
+        purpose: "Search for secrets, config patterns"
+
+      - name: WebFetch
+        category: "research"
+        purpose: "Platform documentation, troubleshooting"
+
+      - name: WebSearch
+        category: "research"
+        purpose: "Search for solutions to deployment issues"
 
   mcp_integrations:
-    - name: mcp__github
+    - name: vercel
       required: true
-      purpose: "Git operations (commit, push, PR creation)"
-      usage_pattern: "Primary tool for all git operations"
-      fallback: "Use Bash tool with git commands if MCP unavailable"
+      purpose: "Frontend deployment, build logs, docs search, domain management"
+      tools_prefix: "mcp__vercel__"
+      notes: "Full API via OAuth. No CLI dependency."
+
+    - name: railway
+      required: true
+      purpose: "Backend deployment, env vars, logs, service management"
+      tools_prefix: "mcp__railway__"
+      limitations:
+        - "Wrapper over CLI - type serialization issues (arrays, numbers)"
+        - "No destructive operations (delete, restart)"
+        - "Batch set-variables fails - use CLI"
+      fallback: "railway CLI via Bash for write/destructive operations"
 
   workflow:
     stages:
       - name: review_changes
         order: 1
-        description: "Review code changes and verify readiness for commit/deployment"
+        description: "Verify code is ready for deployment"
         checks:
-          - "All files saved and staged correctly"
-          - "No sensitive data in code (secrets, API keys)"
-          - "Build passes locally (if applicable)"
-          - "Tests pass (production only)"
+          - "bun run build passes (frontend)"
+          - "pytest passes (backend)"
+          - "No secrets in code"
+          - "No debug statements"
         outputs:
-          - "Changes validated for commit"
+          - "Changes validated for deploy"
 
       - name: git_operations
         order: 2
-        description: "Execute git operations (commit, branch, push, PR)"
-        git_commands:
-          - "git status (verify clean state)"
-          - "git add (stage files)"
-          - "git commit (with proper message format)"
-          - "git push (to remote)"
-          - "gh pr create (if creating PR)"
+        description: "Commit and push via git CLI (NOT GitHub MCP)"
+        method: "git CLI via Bash"
         outputs:
-          - "Code committed and pushed to remote"
+          - "Code committed and pushed"
 
-      - name: ci_cd_setup
+      - name: deploy_frontend
         order: 3
-        description: "Configure and maintain CI/CD pipelines"
-        ci_cd_tasks:
-          - "Create/update GitHub Actions workflows"
-          - "Configure build steps"
-          - "Set up test execution (production stage)"
-          - "Configure deployment triggers"
-          - "Set up environment variables and secrets"
+        description: "Vercel auto-deploys on push. Verify build logs."
+        platform: vercel
+        tools: ["mcp__vercel__list_deployments", "mcp__vercel__get_deployment_build_logs"]
         outputs:
-          - "CI/CD pipeline configured and tested"
+          - "Frontend deployed on Vercel"
 
-      - name: deployment
+      - name: deploy_backend
         order: 4
-        description: "Deploy application to target environment (staging/production)"
-        deployment_steps:
-          - "Verify target environment availability"
-          - "Run pre-deployment checks (health, database)"
-          - "Execute deployment (based on deployment strategy)"
-          - "Run post-deployment verification"
-          - "Update deployment logs"
+        description: "Deploy backend to Railway via MCP or CLI"
+        platform: railway
+        tools: ["mcp__railway__deploy", "railway up (CLI fallback)"]
         outputs:
-          - "Application deployed successfully"
+          - "Backend deployed on Railway"
 
-      - name: monitoring_setup
+      - name: verify_deployment
         order: 5
-        description: "Configure monitoring, logging, and alerting"
-        monitoring_tasks:
-          - "Set up application health checks"
-          - "Configure error tracking (Sentry, etc.)"
-          - "Set up performance monitoring (APM)"
-          - "Configure log aggregation"
-          - "Set up alerts for critical errors"
+        description: "Health checks, CORS verification, log monitoring"
+        checks:
+          - "Health check endpoint responds"
+          - "Frontend loads without CORS errors"
+          - "No 500 errors in first 10 minutes"
         outputs:
-          - "Monitoring and alerting active"
+          - "Deployment verified and healthy"
+
+      - name: update_tracking
+        order: 6
+        description: "Update status-process.md with deployment details"
+        outputs:
+          - "Change log updated"
+
+  deployment_urls:
+    frontend: "https://status-pulse-app-frontend.vercel.app"
+    backend_api: "https://backend-production-276a.up.railway.app"
+    health_check: "https://backend-production-276a.up.railway.app/api/v1/utils/health-check/"
+    swagger: "https://backend-production-276a.up.railway.app/docs"
 
   quality_metrics:
-    - metric: git_history_clean
-      target: "Commit messages follow conventions, no sensitive data committed"
-    - metric: ci_cd_passes
-      target: "All CI checks pass before merge"
-    - metric: deployment_success_rate
-      target: "95%+ successful deployments"
-    - metric: monitoring_active
-      target: "All critical services monitored, alerts configured"
-    - metric: rollback_plan_available
-      target: "Every deployment has documented rollback procedure"
-
-  stages:
-    - mvp
-    - production
+    - metric: deployment_success
+      target: "Health check passes after every deploy"
+    - metric: no_secrets_committed
+      target: "Zero secrets in git history"
+    - metric: cors_configured
+      target: "FRONTEND_HOST matches Vercel URL"
+    - metric: tracking_updated
+      target: "status-process.md updated after every infra change"

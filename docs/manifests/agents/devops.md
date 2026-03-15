@@ -1,56 +1,63 @@
-# DevOps Engineer Manifest
+# DevOps Engineer Manifest — StatusPulse
 
 **Agent:** @devops
 **Manifest:** [devops.yaml](devops.yaml)
-**Version:** 1.0.0
-**Last Updated:** 2025-10-22
+**Version:** 2.0.0
+**Last Updated:** 2026-03-16
+**Adapted from:** X0 Framework v1.0.0
 
 ---
 
 ## Mission
 
-The DevOps Engineer manages the complete software delivery lifecycle from code commit to production deployment, ensuring reliable, automated, and monitored deployments. This agent handles git operations, CI/CD pipeline configuration, infrastructure management, deployment automation, and monitoring setup to maintain high application availability and performance.
+DevOps Engineer управляет деплоем и инфраструктурой проекта StatusPulse: фронтенд на Vercel, бэкенд + PostgreSQL на Railway. Отвечает за CI/CD, переменные окружения, мониторинг, CORS-настройку и health checks.
 
 **Core Focus:**
-- Advanced git operations (complex merge conflicts, repository configuration)
-- CI/CD pipeline management
-- Deployment automation
-- Infrastructure configuration
-- Monitoring and alerting setup
+- Деплой фронтенда (Vercel) и бэкенда (Railway)
+- Управление переменными окружения (Railway env vars, Vercel env)
+- CORS и связь между frontend ↔ backend
+- Docker (Dockerfile.railway, compose.yml)
+- CI/CD (GitHub Actions)
+- Health checks и мониторинг деплоев
 
-**Clarification on Git Operations:**
-While DevOps manages deployment and infrastructure git operations, **all agents can perform git operations** (commits, branches, PRs). DevOps is NOT the only agent that commits code or creates PRs.
-
-**DevOps focuses on:**
-- Advanced git operations (complex merge conflicts, repository configuration)
-- CI/CD pipeline setup and maintenance
-- Deployment automation
-- Infrastructure as Code (IaC) repository management
-
-**Basic git operations** (commits, branches, PRs): Can be performed by ANY agent (developer, qa-engineer, technical-architect, feature-documentation-writer) according to the project's git-workflow.md.
+**Вне скоупа:**
+- Написание бизнес-логики (это developer)
+- Тестирование фич (это qa-engineer)
+- Архитектурные решения (это technical-architect)
 
 ---
 
 ## Required Reading
 
-Before performing any DevOps tasks, the DevOps Engineer MUST read:
+Перед выполнением любой DevOps-задачи, ОБЯЗАТЕЛЬНО прочитай:
 
 ### Essential Documentation
 
-1. **docs/conventions.md**
-   - Section 6: Git Workflow (commit messages, branching strategy, PR guidelines)
-   - Section 7: Deployment Procedures
-   - **Why:** Git workflow and deployment procedures must follow project conventions
-
-2. **docs/ADR/** (infrastructure-related ADRs)
-   - ADRs related to infrastructure, deployment strategy, monitoring tools
-   - **Why:** Infrastructure decisions are documented in ADRs and must be followed
+1. **`docs/conventions/git.md`** — формат коммитов, ветки, PR
+2. **`docs/conventions/devops.md`** — деплой, env vars, Docker, CORS, MCP patterns
+3. **`docs/conventions/testing.md`** — тесты перед деплоем
+4. **`docs/ADR/README.md`** — читай ADR с тегами `devops`, `infra`, `docker`
+5. **`status-process.md`** — лог изменений (**обновляй после КАЖДОГО действия!**)
+6. **`docs/help/mcp-vs-cli/railway-mcp-vs-cli.md`** — ограничения Railway MCP
+7. **`CLAUDE.md`** (секции: Architecture, Infrastructure, Deployment, Environment)
 
 ### Optional Documentation
 
-3. **docs/backlog/current/XX-FEAT-name/implementation-plan.md**
-   - Feature context for deployment
-   - **When to read:** When deploying specific features
+8. **`docs/backlog/NNN-feature/plan.md`** — контекст фичи при деплое
+9. **`docs/agent-learnings/devops/`** — прошлые ошибки и workaround-ы
+
+---
+
+## Стек проекта
+
+| Компонент | Технология | Платформа деплоя |
+|-----------|-----------|-----------------|
+| Frontend | React 19 + TypeScript + Vite 7 | **Vercel** (static CDN) |
+| Backend | FastAPI + SQLModel | **Railway** (Docker) |
+| Database | PostgreSQL | **Railway** (managed) |
+| Package Manager (FE) | Bun | — |
+| Package Manager (BE) | uv | — |
+| Reverse Proxy (local) | Traefik | Docker Compose |
 
 ---
 
@@ -58,24 +65,25 @@ Before performing any DevOps tasks, the DevOps Engineer MUST read:
 
 ### Required Tools
 
-**Bash:**
-- Purpose: Execute git commands, deployment scripts, infrastructure commands
-- Usage: Primary tool for command-line operations
-
-**Read:**
-- Purpose: Read configuration files, deployment manifests, CI/CD configs
-- Usage: Review existing configurations before modifications
-
-**Write:**
-- Purpose: Create/update CI/CD configs, deployment scripts, infrastructure as code
-- Usage: Modify configuration files and scripts
+| Tool | Назначение |
+|------|-----------|
+| **Bash** | Git, Docker, Railway CLI, deployment scripts |
+| **Read** | Конфиги, Dockerfiles, .env, compose.yml |
+| **Write** | CI/CD конфиги, Dockerfiles, deployment scripts |
+| **Edit** | Точечные изменения в конфигах |
+| **Glob/Grep** | Поиск конфигов и секретов |
+| **WebFetch/WebSearch** | Документация платформ, troubleshooting |
 
 ### MCP Integrations
 
-**mcp__github:**
-- Purpose: Git operations through GitHub API
-- Usage: Preferred method for commit, push, PR creation
-- Fallback: Use Bash with git commands if MCP unavailable
+| MCP | Назначение | Ограничения |
+|-----|-----------|-------------|
+| **mcp__vercel__*** | Деплой FE, build logs, docs search, domain check | Полноценный API (OAuth) |
+| **mcp__railway__*** | List projects/services, get logs, set vars, deploy | Обёртка над CLI — типизация параметров ломается, нет деструктивных ops |
+
+**Паттерн:** MCP для чтения → CLI (Bash) для записи/деструктивных операций.
+
+**НЕ используем:** GitHub MCP. Git-операции — через `git` CLI в Bash.
 
 ---
 
@@ -83,493 +91,239 @@ Before performing any DevOps tasks, the DevOps Engineer MUST read:
 
 ### Step 1: Review Changes
 
-**Goal:** Verify code changes are ready for commit and deployment
+**Goal:** Проверить что код готов к деплою.
 
-**Pre-Commit Checks:**
+**Pre-Deployment Checks:**
 ```bash
-# Check git status
-git status
+# Frontend
+cd frontend && bun run build    # TypeScript check + Vite build
+cd frontend && bun run lint     # Biome linter
 
-# Verify no untracked files with secrets
-grep -r "API_KEY\|SECRET\|PASSWORD" src/ || echo "Clean"
+# Backend
+cd backend && uv run ruff check app/  # Python linter
+cd backend && pytest                   # Tests (requires running PostgreSQL)
 
-# Verify build passes (if applicable)
-npm run build || pnpm build
-
-# Verify tests pass (production only)
-npm test || echo "Skipping tests (MVP)"
+# Security
+grep -r "SECRET_KEY\|PASSWORD\|API_KEY" --include="*.ts" --include="*.py" src/ app/ || echo "Clean"
 ```
 
 **Checklist:**
-- [ ] All files saved and staged correctly
-- [ ] No sensitive data in code (API keys, secrets, passwords)
-- [ ] Build passes locally
-- [ ] Tests pass (production stage only)
-- [ ] No console.log() or debug statements left
-- [ ] .env files not committed (check .gitignore)
-
-**Outputs:**
-- Changes validated and ready for commit
+- [ ] `bun run build` проходит без TS ошибок
+- [ ] `pytest` проходит (backend)
+- [ ] Нет секретов в коде (`.env` в `.gitignore`)
+- [ ] Нет `console.log` / `print()` дебаг-стейтментов
 
 ---
 
 ### Step 2: Git Operations
 
-**Goal:** Execute git operations (commit, push, PR creation) following project conventions
+**Goal:** Коммит и пуш по конвенциям проекта.
 
-**Git Commit Process:**
-
-**Commit Message Format (from conventions.md):**
+**Commit Message Format:**
 ```
 <type>(<scope>): <subject>
 
 <body>
 
-<footer>
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 ```
 
-**Types:**
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `test`: Test additions/changes
-- `chore`: Build/config changes
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+**Scopes:** `frontend`, `backend`, `infra`, `ci`, `docker`
 
-**Example Commit:**
+**Git через CLI (НЕ GitHub MCP):**
 ```bash
-# Using GitHub MCP (preferred)
-gh api /repos/OWNER/REPO/git/commits -F message="$(cat <<'EOF'
-feat(auth): add password reset functionality
-
-- Implement password reset flow with email verification
-- Add Argon2 password hashing
-- Create reset token generation and validation
-
-Closes #123
-
-🤖 Generated with Claude Code
-
-Co-Authored-By: Claude <noreply@anthropic.com>
-EOF
-)"
-
-# OR using Bash (fallback)
-git add .
+git add <specific-files>
 git commit -m "$(cat <<'EOF'
-feat(auth): add password reset functionality
+chore(infra): update Railway env vars for production CORS
 
-- Implement password reset flow with email verification
-- Add Argon2 password hashing
-- Create reset token generation and validation
+- Set FRONTEND_HOST to Vercel URL
+- Update BACKEND_CORS_ORIGINS
 
-Closes #123
-
-🤖 Generated with Claude Code
-
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>
 EOF
 )"
-git push origin feature/password-reset
+git push origin <branch>
 ```
 
-**Pull Request Creation:**
+**PR Creation (через gh CLI):**
 ```bash
-# Using GitHub MCP
-gh pr create --title "Add password reset functionality" --body "$(cat <<'EOF'
+gh pr create --title "Title" --body "$(cat <<'EOF'
 ## Summary
-- Implement password reset flow
-- Add email verification
-- Use Argon2 for hashing
+- ...
 
-## Test Plan
-- [x] Manual testing of reset flow
-- [x] Email verification tested
-- [x] Security review passed
+## Test plan
+- ...
 
 🤖 Generated with Claude Code
 EOF
 )"
 ```
 
-**Outputs:**
-- Code committed and pushed to remote
-- PR created (if applicable)
+---
+
+### Step 3: Vercel Deployment (Frontend)
+
+**Architecture:** GitHub integration → auto-deploy on push to master.
+
+**Configuration:**
+- Build command: `bun run build`
+- Output directory: `frontend/dist`
+- Root directory: `frontend/`
+- Framework: Vite
+
+**Manual checks via MCP:**
+```
+mcp__vercel__list_deployments     → статус деплоев
+mcp__vercel__get_deployment       → детали конкретного деплоя
+mcp__vercel__get_deployment_build_logs → логи билда при ошибках
+```
+
+**Env vars на Vercel:**
+- `VITE_API_URL` → URL бэкенда на Railway
 
 ---
 
-### Step 3: CI/CD Setup
+### Step 4: Railway Deployment (Backend)
 
-**Goal:** Configure and maintain CI/CD pipelines for automated testing and deployment
+**Architecture:** Docker build from `backend/Dockerfile.railway`.
 
-**GitHub Actions Example:**
+**Key files:**
+- `backend/Dockerfile.railway` — Railway-specific (без BuildKit cache mounts)
+- `railway.toml` — конфиг Railway (health check path, build command)
 
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linter
-        run: npm run lint
-
-      - name: Run tests
-        run: npm test
-        if: github.ref == 'refs/heads/main'  # Production only
-
-      - name: Build
-        run: npm run build
-
-      - name: Run security audit
-        run: npm audit --audit-level=moderate
+**Environment Variables (Railway):**
+```bash
+# Через CLI (MCP ломается на массивах):
+railway variables set \
+  'PROJECT_NAME=StatusPulse' \
+  'ENVIRONMENT=production' \
+  'SECRET_KEY=<generated>' \
+  'FIRST_SUPERUSER=admin@statuspulse.app' \
+  'FIRST_SUPERUSER_PASSWORD=<secure>' \
+  'FRONTEND_HOST=https://status-pulse-app-frontend.vercel.app' \
+  'BACKEND_CORS_ORIGINS=https://status-pulse-app-frontend.vercel.app' \
+  'POSTGRES_SERVER=${{Postgres.PGHOST}}' \
+  'POSTGRES_PORT=${{Postgres.PGPORT}}' \
+  'POSTGRES_USER=${{Postgres.PGUSER}}' \
+  'POSTGRES_PASSWORD=${{Postgres.PGPASSWORD}}' \
+  'POSTGRES_DB=${{Postgres.PGDATABASE}}'
 ```
 
-**CI/CD Configuration Checklist:**
-- [ ] Build step configured
-- [ ] Linter runs on every PR
-- [ ] Tests run on main branch (production)
-- [ ] Security audit runs automatically
-- [ ] Environment variables configured in GitHub Secrets
-- [ ] Deployment triggers set up
-- [ ] Failure notifications configured
+**Railway reference variables:** Используй `${{Postgres.PGHOST}}` и т.д. для автоматической привязки к managed PostgreSQL.
 
-**Outputs:**
-- CI/CD pipeline configured and tested
-- All checks passing
+**Deploy:**
+```bash
+# Через MCP
+mcp__railway__deploy
+
+# Через CLI (fallback)
+railway up
+```
+
+**Post-deploy:**
+```bash
+# Health check
+curl https://backend-production-276a.up.railway.app/api/v1/utils/health-check/
+
+# Logs
+mcp__railway__get-logs  # или: railway logs
+```
 
 ---
 
-### Step 4: Deployment
+### Step 5: CORS & Frontend-Backend Connection
 
-**Goal:** Deploy application to target environment (staging or production)
+**Критичная настройка** — без неё прод не работает.
 
-**Deployment Process:**
+**Backend config:** `backend/app/core/config.py`
+- `FRONTEND_HOST` → автоматически добавляется в `all_cors_origins`
+- `BACKEND_CORS_ORIGINS` → дополнительные origins
 
-**Pre-Deployment Checks:**
-```bash
-# 1. Verify target environment health
-curl https://staging.example.com/health
-
-# 2. Verify database connectivity
-psql $DATABASE_URL -c "SELECT 1"
-
-# 3. Check environment variables
-env | grep -v SECRET | grep -v KEY  # Don't print secrets!
-```
-
-**Deployment (Example: Vercel):**
-```bash
-# Deploy to staging
-vercel deploy --env=staging
-
-# Deploy to production (requires confirmation)
-vercel deploy --prod
-```
-
-**Post-Deployment Verification:**
-```bash
-# 1. Health check
-curl https://app.example.com/health
-# Expected: {"status": "ok"}
-
-# 2. Check error logs (first 5 minutes)
-# Monitor for any 500 errors or exceptions
-
-# 3. Smoke test critical paths
-curl https://app.example.com/api/auth/session
-# Expected: Valid response
-
-# 4. Update deployment log
-echo "Deployed version 1.2.0 to production at $(date)" >> deployment-log.md
-```
-
-**Deployment Checklist:**
-- [ ] Pre-deployment checks passed
-- [ ] Environment variables configured in deployment platform
-- [ ] Database migrations applied (if any)
-- [ ] Deployment successful (no errors)
-- [ ] Health check passed
-- [ ] Smoke tests passed
-- [ ] No critical errors in first 5 minutes
-- [ ] Deployment log updated
-
-**Rollback Plan:**
-```bash
-# If deployment fails:
-# 1. Immediately rollback to previous version
-vercel rollback
-
-# 2. Verify old version works
-curl https://app.example.com/health
-
-# 3. Investigate issue
-# 4. Fix and redeploy
-```
-
-**Outputs:**
-- Application deployed successfully
-- Health checks passing
-- Deployment log updated
+**Проверка:**
+1. `FRONTEND_HOST` на Railway = URL фронта на Vercel
+2. Frontend `VITE_API_URL` = URL бэкенда на Railway
+3. Health check с фронта проходит через CORS
 
 ---
 
-### Step 5: Monitoring Setup
+### Step 6: Monitoring
 
-**Goal:** Configure monitoring, logging, and alerting for application health
-
-**Monitoring Components:**
-
-**1. Health Checks:**
-```javascript
-// app/api/health/route.ts
-export async function GET() {
-  // Check database
-  const dbHealthy = await checkDatabase()
-
-  // Check external services
-  const servicesHealthy = await checkServices()
-
-  if (!dbHealthy || !servicesHealthy) {
-    return Response.json({ status: "unhealthy" }, { status: 503 })
-  }
-
-  return Response.json({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    version: process.env.APP_VERSION
-  })
-}
+**Health Check Endpoint (уже есть):**
+```
+GET /api/v1/utils/health-check/ → {"status": true}
 ```
 
-**2. Error Tracking (Sentry Example):**
-```javascript
-// sentry.config.js
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV,
-  tracesSampleRate: 0.1,  // 10% of transactions
-  beforeSend(event) {
-    // Filter sensitive data
-    if (event.request) {
-      delete event.request.cookies
-      delete event.request.headers
-    }
-    return event
-  }
-})
-```
+**StatusPulse сам является монитором!** Проект мониторит внешние сервисы. Но сам себя пока не мониторит.
 
-**3. Performance Monitoring (APM):**
-```javascript
-// Monitor API response times
-export async function middleware(request) {
-  const start = Date.now()
-
-  const response = await next()
-
-  const duration = Date.now() - start
-  if (duration > 1000) {
-    console.warn(`Slow request: ${request.url} took ${duration}ms`)
-  }
-
-  return response
-}
-```
-
-**4. Alerting Configuration:**
-```yaml
-# Example: Uptime monitoring (UptimeRobot, Pingdom, etc.)
-monitors:
-  - name: Production Health Check
-    url: https://app.example.com/health
-    interval: 5 minutes
-    alert_contacts:
-      - email: team@example.com
-      - slack: #alerts
-
-  - name: Database Connectivity
-    type: port
-    host: db.example.com
-    port: 5432
-    interval: 5 minutes
-```
-
-**Monitoring Checklist:**
-- [ ] Health check endpoint implemented
-- [ ] Error tracking configured (Sentry, etc.)
-- [ ] Performance monitoring active
-- [ ] Log aggregation set up
-- [ ] Uptime monitoring configured
-- [ ] Alert thresholds defined (error rate, response time)
-- [ ] Alert channels configured (email, Slack)
-- [ ] Dashboard accessible to team
-
-**Outputs:**
-- Monitoring active for all critical services
-- Alerts configured and tested
-- Team has access to dashboards
+**Post-Deployment Monitoring:**
+- Проверить health check после каждого деплоя
+- Мониторить логи Railway первые 10 минут
+- Проверить что фронтенд загружается на Vercel
 
 ---
 
 ## Quality Checklist
 
-Use this checklist for every DevOps task:
+### Перед каждым деплоем
+- [ ] `bun run build` проходит (frontend)
+- [ ] `pytest` проходит (backend)
+- [ ] Нет секретов в коммите
+- [ ] CORS настроен (`FRONTEND_HOST` = Vercel URL)
+- [ ] Health check проходит после деплоя
+- [ ] `status-process.md` обновлён
 
-### Git Operations
-- [ ] Commit message follows conventions (type, scope, body)
-- [ ] No sensitive data committed (.env, API keys, secrets)
-- [ ] Git history clean (no "wip" or "test" commits on main)
-- [ ] Branch naming follows conventions (feature/, fix/, chore/)
-- [ ] PR description complete with summary and test plan
+### Environment Variables
+- [ ] Railway: все 13 переменных установлены
+- [ ] Railway: PostgreSQL reference vars корректны
+- [ ] Vercel: `VITE_API_URL` указывает на Railway
+- [ ] SECRET_KEY сгенерирован (не дефолтный!)
 
-### CI/CD
-- [ ] All CI checks pass before merge
-- [ ] Linter runs on every PR
-- [ ] Tests run on main branch (production)
-- [ ] Security audit passes
-- [ ] Build succeeds
-- [ ] Environment variables configured securely
+### Docker
+- [ ] `backend/Dockerfile.railway` — без BuildKit cache mounts
+- [ ] `railway.toml` — health check path корректен
+- [ ] Local Docker Compose работает (`docker compose watch`)
 
-### Deployment
-- [ ] Pre-deployment checks passed
-- [ ] Deployment script tested
-- [ ] Database migrations applied
-- [ ] Environment-specific configs correct
-- [ ] Health check passes post-deployment
-- [ ] Smoke tests passed
-- [ ] Rollback plan documented and tested
+---
 
-### Monitoring
-- [ ] Health check endpoint working
-- [ ] Error tracking active
-- [ ] Performance monitoring configured
-- [ ] Alerts set up for critical errors
-- [ ] Logs accessible and searchable
-- [ ] Dashboards created and shared with team
+## Deployment URLs
+
+| Сервис | URL |
+|--------|-----|
+| Frontend (Vercel) | https://status-pulse-app-frontend.vercel.app |
+| Backend API (Railway) | https://backend-production-276a.up.railway.app |
+| Health Check | https://backend-production-276a.up.railway.app/api/v1/utils/health-check/ |
+| Swagger UI | https://backend-production-276a.up.railway.app/docs |
+
+---
+
+## Known Issues & Workarounds
+
+1. **Railway MCP `set-variables`** — ломается на массивах. Workaround: CLI `railway variables set`
+2. **Railway MCP `deploy-template`** — ломается на числах. Workaround: CLI `railway add -d postgres`
+3. **Railway MCP** — нет деструктивных операций (delete, restart). Workaround: CLI
+4. **CORS** — `FRONTEND_HOST` на Railway должен точно совпадать с Vercel URL (с `https://`, без trailing slash)
 
 ---
 
 ## Best Practices
 
 ### DO:
-- ✅ Write clear, descriptive commit messages
-- ✅ Verify no secrets before committing
-- ✅ Test CI/CD pipelines locally before pushing
-- ✅ Always have a rollback plan for deployments
-- ✅ Monitor deployments for first 10 minutes
-- ✅ Document deployment procedures
-- ✅ Set up alerts for critical errors
-- ✅ Keep deployment logs up to date
+- Использовать Railway reference vars (`${{Postgres.PGHOST}}`)
+- Генерировать SECRET_KEY: `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+- Обновлять `status-process.md` после каждого инфра-изменения
+- MCP для чтения, CLI для записи
+- Проверять health check после каждого деплоя
 
 ### DON'T:
-- ❌ Commit sensitive data (.env files, API keys, passwords)
-- ❌ Force push to main branch
-- ❌ Deploy without testing in staging first (production)
-- ❌ Skip pre-deployment checks
-- ❌ Deploy on Fridays (production) - risk of weekend issues
-- ❌ Ignore CI/CD failures
-- ❌ Deploy without monitoring in place
+- Коммитить `.env`, API keys, пароли
+- Force push на master
+- Деплоить без прохождения тестов
+- Хардкодить DB credentials (использовать reference vars)
+- Игнорировать ошибки типизации MCP — переключаться на CLI
 
 ---
 
-## Common Scenarios
-
-### Scenario 1: Feature Complete, Ready to Commit
-
-```bash
-# 1. Review changes
-git status
-git diff
-
-# 2. Verify no secrets
-grep -r "API_KEY\|SECRET" src/
-
-# 3. Commit with proper message
-git add .
-git commit -m "feat(dashboard): add user analytics dashboard
-
-- Implement analytics data fetching
-- Create visualization components
-- Add date range filtering
-
-🤖 Generated with Claude Code
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-
-# 4. Push to remote
-git push origin feature/analytics-dashboard
-```
-
-### Scenario 2: Create Pull Request
-
-```bash
-# Using GitHub MCP
-gh pr create \
-  --title "Add user analytics dashboard" \
-  --body "## Summary
-  - Analytics data visualization
-  - Date range filtering
-  - Real-time updates
-
-  ## Test Plan
-  - [x] Manual testing
-  - [x] Performance tested (< 2s load time)
-  - [x] Responsive design verified
-
-  🤖 Generated with Claude Code"
-```
-
-### Scenario 3: Emergency Deployment Rollback
-
-```bash
-# 1. Immediately rollback
-vercel rollback
-
-# 2. Verify old version
-curl https://app.example.com/health
-
-# 3. Alert team
-echo "ALERT: Production rolled back due to deployment issue" | slack-cli --channel alerts
-
-# 4. Investigate logs
-vercel logs --prod --since=10m
-
-# 5. Fix issue locally
-# 6. Test in staging
-# 7. Redeploy to production
-```
-
----
-
-**MANIFEST STATUS:** ✅ COMPLETE
-**VERSION:** 1.0.0
-**LAST UPDATED:** 2025-10-22
-
----
-
-**For @devops:**
-- ✅ ALWAYS verify no secrets before committing
-- ✅ Follow commit message conventions strictly
-- ✅ Always have rollback plan before production deployment
-- ✅ Monitor deployments for first 10 minutes
-- ❌ NEVER commit sensitive data (.env, API keys)
-- ❌ NEVER deploy to production without staging verification
+**MANIFEST STATUS:** ✅ ADAPTED for StatusPulse
+**VERSION:** 2.0.0 (adapted from X0 Framework 1.0.0)
+**LAST UPDATED:** 2026-03-16

@@ -65,24 +65,16 @@ Linters: ruff (Python), biome (frontend). Both run via prek on commit.
 
 ### Testing
 
-```bash
-# Backend (requires PostgreSQL running)
-cd backend && pytest                          # All tests
-cd backend && pytest tests/api/routes/test_services.py  # Single file
-cd backend && pytest -x                       # Stop on first failure
+Быстрый справочник команд. Полные конвенции: `docs/conventions/testing.md`
 
-# Frontend E2E (Playwright, requires full stack running)
-cd frontend && bunx playwright test           # All E2E tests
-cd frontend && bunx playwright test --ui      # Interactive UI mode
-cd frontend && bunx playwright test tests/login.spec.ts  # Single file
+```bash
+cd backend && pytest                          # Backend: все тесты
+cd backend && pytest -x                       # Backend: стоп на первом фейле
+cd frontend && bunx playwright test           # Frontend: все E2E
+cd frontend && bunx playwright test --ui      # Frontend: UI режим
 ```
 
-**ПРАВИЛО: тесты перед деплоем.** Всегда запускай тесты локально перед push/deploy:
-1. **Developer** пишет код → пишет/адаптирует тесты → запускает локально
-2. **DevOps** перед деплоем проверяет: тесты проходят? → только тогда push
-3. **CI/CD (GitHub Actions)** — автоматический прогон после push (test-backend, playwright)
-
-Тестовый workflow: `локальные тесты → push → CI/CD тесты → deploy`
+**ПРАВИЛО:** тесты ВСЕГДА перед деплоем → `docs/conventions/testing.md`
 
 ## Architecture
 
@@ -139,23 +131,71 @@ Root `.env` holds shared config (domain, secrets, DB passwords). Frontend `.env`
 ```
 docs/
 ├── roadmap.md                        ← Общий roadmap проекта (stages, приоритеты)
+├── conventions/                      ← Конвенции проекта (по доменам)
+│   ├── README.md                     ← Индекс с тегами агентов
+│   ├── git.md                        ← Git: коммиты, ветки, PR
+│   ├── testing.md                    ← Тесты: workflow, pytest, Playwright
+│   └── devops.md                     ← DevOps: деплой, env vars, Docker, CORS
+├── ADR/                              ← Architecture Decision Records
+│   ├── README.md                     ← Индекс с тегами агентов
+│   ├── ADR-001-deploy-split-vercel-railway.md
+│   ├── ADR-002-railway-dockerfile-no-buildkit.md
+│   ├── ADR-003-mcp-read-cli-write.md
+│   └── ADR-004-no-signup-login-only.md
 ├── backlog/                          ← Фичи проекта (каждая в своей папке)
 │   ├── 001-status-pulse-base/        ← Фича 1: базовый MVP
 │   │   ├── design.md                 ← Архитектура и дизайн-решения
 │   │   └── plan.md                   ← Пошаговый план имплементации
-│   ├── 002-next-feature/             ← Фича 2: ...
-│   │   ├── design.md
-│   │   └── plan.md
+│   ├── 002-testing-setup/
+│   ├── 003-frontend-customization/
 │   └── ...
 ├── help/                             ← Справочная документация
 │   ├── subagent-frontmatter-reference.md  ← Формат субагентов Claude Code
+│   ├── agent-manifest-adaptation-guide.md ← Гайд по адаптации манифестов
 │   └── mcp-vs-cli/                   ← MCP vs CLI исследования
 │       └── railway-mcp-vs-cli.md
-└── manifests/                        ← Манифесты агентов (из X0 Framework)
-    └── agents/
-        ├── devops.md                 ← Детальный воркфлоу DevOps
-        └── devops.yaml              ← Метаданные DevOps
+├── manifests/                        ← Манифесты агентов (адаптированные)
+│   └── agents/
+│       ├── devops.md                 ← Детальный воркфлоу DevOps
+│       └── devops.yaml              ← Метаданные DevOps
+└── agent-learnings/                  ← Лог ошибок и workaround-ов агентов
+    └── README.md
 ```
+
+## Conventions & ADR
+
+### Conventions (`docs/conventions/`)
+
+Конвенции проекта разбиты по доменам. Каждый файл помечен тегами — какие агенты его читают.
+
+| Файл | Домен | Агенты |
+|------|-------|--------|
+| `conventions/git.md` | Git коммиты, ветки, PR | все |
+| `conventions/testing.md` | Тесты, linters, workflow | developer, qa-engineer, devops |
+| `conventions/devops.md` | Деплой, env vars, Docker, CORS | devops |
+
+**ПРАВИЛО при вызове субагентов:** передавай в промпт ссылки на релевантные конвенции:
+> Перед работой прочитай конвенции: `docs/conventions/git.md`, `docs/conventions/<domain>.md`
+
+### ADR (`docs/ADR/`)
+
+Architecture Decision Records — записи о принятых архитектурных решениях. Каждый ADR помечен тегами.
+
+**Как агенты работают с ADR:**
+- Перед инфра-задачей DevOps читает ADR с тегами `devops`, `infra`, `docker`
+- Перед фронтенд-задачей developer читает ADR с тегами `frontend`, `architecture`
+- ADR README содержит таблицу тегов → агентов
+
+**ПРАВИЛО при вызове субагентов:** передавай в промпт:
+> Проверь релевантные ADR в `docs/ADR/README.md` (читай только со своими тегами)
+
+**Когда создавать новый ADR:**
+- Выбор технологии/платформы
+- Архитектурное решение которое сложно откатить
+- Решение от которого зависят другие части системы
+- НЕ создавать для мелочей (стиль кода, naming)
+
+---
 
 **ПРАВИЛО для superpowers skills (brainstorming, writing-plans и т.д.):**
 - Дизайны и планы создавать **внутри фичи** в `docs/backlog/NNN-feature-name/`
@@ -182,22 +222,29 @@ docs/
 - CI/CD, GitHub Actions → `devops`
 - Мониторинг, домены → `devops`
 
-### Добавление нового агента из X0 Framework
+### Добавление нового агента (из X0 Framework или самостоятельно)
 
-Источник: `https://github.com/Serg1kk/X0-Framework`
+Источник X0: `https://github.com/Serg1kk/X0-Framework`
 
-```bash
-# Шаг 1: Скопировать промпт агента (адаптировать под проект!)
-# X0: .x0/agents/prompts/core/<agent>.md → Проект: .claude/agents/<agent>.md
-# ВАЖНО: добавить правильный frontmatter (name, description, model, tools)
+**Шаги:**
+1. Скопировать промпт → `.claude/agents/<agent>.md` (добавить frontmatter)
+2. Скопировать манифесты → `docs/manifests/agents/<agent>.md` + `.yaml`
+3. **ОБЯЗАТЕЛЬНО: Адаптировать под проект** (см. гайд ниже)
+4. Обновить таблицу субагентов в этом CLAUDE.md
+5. Записать в `status-process.md`
 
-# Шаг 2: Скопировать манифесты
-# X0: .x0/agents/manifests/core/<agent>.md  → Проект: docs/manifests/agents/<agent>.md
-# X0: .x0/agents/manifests/core/<agent>.yaml → Проект: docs/manifests/agents/<agent>.yaml
+**ПРАВИЛО АДАПТАЦИИ (ОБЯЗАТЕЛЬНО):**
 
-# Шаг 3: Обновить таблицу субагентов в этом CLAUDE.md
-# Шаг 4: Записать в status-process.md
-```
+При добавлении ЛЮБОГО нового агента (из X0 Framework, из другого проекта, или созданного с нуля) — **ВСЕГДА адаптируй манифесты под текущий проект:**
+
+1. **Убери несуществующие MCP** — проверь `.mcp.json`, убери ссылки на MCP которых нет
+2. **Убери несуществующие docs** — `docs/conventions.md`, `docs/ADR/` и т.д. если их нет
+3. **Замени стек** — npm → bun/uv, generic → конкретные команды проекта
+4. **Замени примеры** — generic URLs → реальные deployment URLs
+5. **Добавь project-specific** — CORS, Railway reference vars, known issues
+6. **Обнови metadata** — version, updated_at, adapted_from
+
+**Полный гайд:** `docs/help/agent-manifest-adaptation-guide.md`
 
 Доступные агенты в X0 Framework (core): `developer`, `devops`, `qa-engineer`, `researcher`, `technical-architect`, `implementation-plan-architect`, `implementation-plan-reviewer`, `feature-documentation-writer`
 

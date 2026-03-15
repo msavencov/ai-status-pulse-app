@@ -39,10 +39,12 @@
 5. **Session History** — `session-history/` + команда `/save-session`
 6. **Docs структура:**
    - `docs/roadmap.md` — roadmap проекта
-   - `docs/backlog/` — фичи (001-status-pulse-base)
-   - `docs/help/` — справочники (subagent frontmatter, MCP vs CLI, agent manifests)
+   - `docs/conventions/` — конвенции по доменам (git, testing, devops)
+   - `docs/ADR/` — Architecture Decision Records (4 записи)
+   - `docs/backlog/` — фичи (001-base, 002-testing, 003-frontend)
+   - `docs/help/` — справочники (subagent frontmatter, MCP vs CLI, agent manifests, adaptation guide)
    - `docs/agent-learnings/` — лог ошибок агентов
-   - `docs/manifests/` — манифесты агентов
+   - `docs/manifests/` — манифесты агентов (адаптированные под проект)
 
 ### Деплой
 - **Frontend** → Vercel (static Vite build, GitHub integration, auto-deploy on push)
@@ -105,3 +107,11 @@
 | 2026-03-16 | CLAUDE.md | Полная конфигурация: subagents, agent-learnings, session history, docs structure |
 | 2026-03-16 | Fix: TS build | Route tree (items→services), Zod v4 + RHF v5 типы |
 | 2026-03-16 | Fix: Dockerfile | Railway-совместимый Dockerfile без BuildKit cache mounts |
+| 2026-03-16 | Agent adapted | DevOps манифесты адаптированы под проект (убран GitHub MCP, npm→bun/uv, добавлены Railway/Vercel specifics) |
+| 2026-03-16 | Docs added | `docs/help/agent-manifest-adaptation-guide.md` — гайд по адаптации манифестов |
+| 2026-03-16 | CLAUDE.md | Добавлено правило обязательной адаптации агентов при добавлении |
+| 2026-03-16 | Backlog | 003-frontend-customization — адаптация UI под Status Pulse |
+| 2026-03-16 | Docs created | `docs/conventions/` — конвенции по доменам (git, testing, devops) |
+| 2026-03-16 | Docs created | `docs/ADR/` — 4 ADR (deploy split, Dockerfile, MCP+CLI, no-signup) |
+| 2026-03-16 | CLAUDE.md | Секция Conventions & ADR, логика работы агентов с conventions/ADR |
+| 2026-03-16 | Agent updated | DevOps промпт + манифест обновлены: ссылки на conventions/ADR |

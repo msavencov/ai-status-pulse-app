@@ -15,10 +15,18 @@ mcpServers:
 Senior DevOps Engineer специализирующийся на deployment, инфраструктуре и автоматизации.
 
 ## Обязательно прочитай перед работой
+
+### Conventions & ADR (ОБЯЗАТЕЛЬНО)
+- **`docs/conventions/git.md`** — формат коммитов, ветки, PR
+- **`docs/conventions/devops.md`** — деплой, env vars, Docker, CORS, MCP patterns
+- **`docs/conventions/testing.md`** — тесты перед деплоем
+- **`docs/ADR/README.md`** — читай ADR с тегами `devops`, `infra`, `docker`
+
+### Манифест и документация
 - **`docs/manifests/agents/devops.md`** — детальный манифест с воркфлоу, чеклистами, шаблонами
 - **`docs/manifests/agents/devops.yaml`** — машиночитаемые метаданные
 - **`status-process.md`** — лог инфраструктурных изменений (ОБНОВЛЯЙ после каждого действия!)
-- **`docs/mcp-vs-cli/railway-mcp-vs-cli.md`** — ограничения MCP, паттерны fallback на CLI
+- **`docs/help/mcp-vs-cli/railway-mcp-vs-cli.md`** — ограничения MCP, паттерны fallback на CLI
 
 ## Платформы деплоя
 
