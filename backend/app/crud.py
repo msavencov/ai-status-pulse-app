@@ -1,10 +1,23 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Any
 
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.models import (
+    HealthCheck,
+    Incident,
+    IncidentCreate,
+    IncidentStatus,
+    IncidentUpdate,
+    Service,
+    ServiceCreate,
+    ServiceUpdate,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -60,9 +73,121 @@ def authenticate(*, session: Session, email: str, password: str) -> User | None:
     return db_user
 
 
-def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -> Item:
-    db_item = Item.model_validate(item_in, update={"owner_id": owner_id})
-    session.add(db_item)
+# --- Services ---
+
+
+def create_service(*, session: Session, service_in: ServiceCreate) -> Service:
+    db_service = Service.model_validate(service_in)
+    session.add(db_service)
     session.commit()
-    session.refresh(db_item)
-    return db_item
+    session.refresh(db_service)
+    return db_service
+
+
+def get_services(
+    *, session: Session, skip: int = 0, limit: int = 100
+) -> tuple[list[Service], int]:
+    count = session.exec(select(func.count()).select_from(Service)).one()
+    services = session.exec(select(Service).offset(skip).limit(limit)).all()
+    return list(services), count
+
+
+def get_service(*, session: Session, service_id: uuid.UUID) -> Service | None:
+    return session.get(Service, service_id)
+
+
+def update_service(
+    *, session: Session, db_service: Service, service_in: ServiceUpdate
+) -> Service:
+    update_data = service_in.model_dump(exclude_unset=True)
+    db_service.sqlmodel_update(update_data)
+    session.add(db_service)
+    session.commit()
+    session.refresh(db_service)
+    return db_service
+
+
+def delete_service(*, session: Session, service_id: uuid.UUID) -> None:
+    service = session.get(Service, service_id)
+    if service:
+        session.delete(service)
+        session.commit()
+
+
+# --- Health Checks ---
+
+
+def create_health_check(
+    *,
+    session: Session,
+    service_id: uuid.UUID,
+    status_code: int | None,
+    response_time_ms: int,
+    is_healthy: bool,
+) -> HealthCheck:
+    check = HealthCheck(
+        service_id=service_id,
+        status_code=status_code,
+        response_time_ms=response_time_ms,
+        is_healthy=is_healthy,
+    )
+    session.add(check)
+    session.commit()
+    session.refresh(check)
+    return check
+
+
+def get_health_checks(
+    *, session: Session, service_id: uuid.UUID, limit: int = 100
+) -> list[HealthCheck]:
+    return list(
+        session.exec(
+            select(HealthCheck)
+            .where(HealthCheck.service_id == service_id)
+            .order_by(HealthCheck.checked_at.desc())  # type: ignore
+            .limit(limit)
+        ).all()
+    )
+
+
+# --- Incidents ---
+
+
+def create_incident(*, session: Session, incident_in: IncidentCreate) -> Incident:
+    db_incident = Incident.model_validate(incident_in)
+    session.add(db_incident)
+    session.commit()
+    session.refresh(db_incident)
+    return db_incident
+
+
+def get_incidents(
+    *,
+    session: Session,
+    skip: int = 0,
+    limit: int = 100,
+    active_only: bool = False,
+) -> tuple[list[Incident], int]:
+    query = select(Incident)
+    count_query = select(func.count()).select_from(Incident)
+    if active_only:
+        query = query.where(Incident.status != IncidentStatus.resolved)
+        count_query = count_query.where(Incident.status != IncidentStatus.resolved)
+    count = session.exec(count_query).one()
+    incidents = session.exec(
+        query.order_by(Incident.created_at.desc()).offset(skip).limit(limit)  # type: ignore
+    ).all()
+    return list(incidents), count
+
+
+def update_incident(
+    *, session: Session, db_incident: Incident, incident_in: IncidentUpdate
+) -> Incident:
+    update_data = incident_in.model_dump(exclude_unset=True)
+    if update_data.get("status") == IncidentStatus.resolved:
+        db_incident.resolved_at = datetime.now(timezone.utc)
+    db_incident.sqlmodel_update(update_data)
+    session.add(db_incident)
+    session.commit()
+    session.refresh(db_incident)
+    return db_incident

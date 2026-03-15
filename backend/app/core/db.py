@@ -1,8 +1,12 @@
+import logging
+
 from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import Service, User, UserCreate
+
+logger = logging.getLogger(__name__)
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -31,3 +35,38 @@ def init_db(session: Session) -> None:
             is_superuser=True,
         )
         user = crud.create_user(session=session, user_create=user_in)
+
+    # Seed test services
+    existing_services = session.exec(select(Service)).first()
+    if not existing_services:
+        test_services = [
+            Service(
+                name="API Gateway",
+                url="https://httpbin.org/status/200",
+                category="Backend",
+            ),
+            Service(
+                name="Auth Service",
+                url="https://httpbin.org/status/200",
+                category="Backend",
+            ),
+            Service(
+                name="Web App",
+                url="https://example.com",
+                category="Frontend",
+            ),
+            Service(
+                name="Database",
+                url="https://httpbin.org/status/200",
+                category="Infrastructure",
+            ),
+            Service(
+                name="CDN",
+                url="https://httpbin.org/status/503",
+                category="Infrastructure",
+            ),
+        ]
+        for svc in test_services:
+            session.add(svc)
+        session.commit()
+        logger.info("Seed services created")

@@ -1,9 +1,10 @@
+import enum
 import uuid
 from datetime import datetime, timezone
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, SQLModel
 
 
 def get_datetime_utc() -> datetime:
@@ -53,7 +54,6 @@ class User(UserBase, table=True):
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -67,44 +67,123 @@ class UsersPublic(SQLModel):
     count: int
 
 
-# Shared properties
-class ItemBase(SQLModel):
-    title: str = Field(min_length=1, max_length=255)
-    description: str | None = Field(default=None, max_length=255)
+# --- Enums ---
+
+class ServiceStatus(str, enum.Enum):
+    operational = "operational"
+    degraded = "degraded"
+    down = "down"
 
 
-# Properties to receive on item creation
-class ItemCreate(ItemBase):
-    pass
+class IncidentStatus(str, enum.Enum):
+    investigating = "investigating"
+    identified = "identified"
+    monitoring = "monitoring"
+    resolved = "resolved"
 
 
-# Properties to receive on item update
-class ItemUpdate(ItemBase):
-    title: str | None = Field(default=None, min_length=1, max_length=255)  # type: ignore
+# --- DB Tables ---
 
-
-# Database model, database table inferred from class name
-class Item(ItemBase, table=True):
+class Service(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime | None = Field(
+    name: str = Field(max_length=255)
+    url: str = Field(max_length=2048)
+    category: str = Field(max_length=100, default="General")
+    check_interval: int = Field(default=60)
+    current_status: ServiceStatus = Field(default=ServiceStatus.operational)
+    created_at: datetime = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+
+
+class HealthCheck(SQLModel, table=True):
+    __tablename__ = "healthcheck"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    service_id: uuid.UUID = Field(foreign_key="service.id", ondelete="CASCADE")
+    status_code: int | None = Field(default=None)
+    response_time_ms: int = Field(default=0)
+    is_healthy: bool = Field(default=True)
+    checked_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
     )
-    owner: User | None = Relationship(back_populates="items")
 
 
-# Properties to return via API, id is always required
-class ItemPublic(ItemBase):
+class Incident(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    service_id: uuid.UUID = Field(foreign_key="service.id", ondelete="CASCADE")
+    title: str = Field(max_length=500)
+    status: IncidentStatus = Field(default=IncidentStatus.investigating)
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    resolved_at: datetime | None = Field(default=None)
+
+
+# --- Pydantic Schemas ---
+
+class ServiceCreate(SQLModel):
+    name: str = Field(max_length=255)
+    url: str = Field(max_length=2048)
+    category: str = Field(max_length=100, default="General")
+    check_interval: int = Field(default=60)
+
+
+class ServiceUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=255)
+    url: str | None = Field(default=None, max_length=2048)
+    category: str | None = Field(default=None, max_length=100)
+    check_interval: int | None = Field(default=None)
+
+
+class ServicePublic(SQLModel):
     id: uuid.UUID
-    owner_id: uuid.UUID
-    created_at: datetime | None = None
+    name: str
+    url: str
+    category: str
+    check_interval: int
+    current_status: ServiceStatus
+    created_at: datetime
 
 
-class ItemsPublic(SQLModel):
-    data: list[ItemPublic]
+class ServicesPublic(SQLModel):
+    data: list[ServicePublic]
+    count: int
+
+
+class HealthCheckPublic(SQLModel):
+    id: uuid.UUID
+    service_id: uuid.UUID
+    status_code: int | None
+    response_time_ms: int
+    is_healthy: bool
+    checked_at: datetime
+
+
+class IncidentCreate(SQLModel):
+    service_id: uuid.UUID
+    title: str = Field(max_length=500)
+    status: IncidentStatus = Field(default=IncidentStatus.investigating)
+
+
+class IncidentUpdate(SQLModel):
+    title: str | None = Field(default=None, max_length=500)
+    status: IncidentStatus | None = Field(default=None)
+
+
+class IncidentPublic(SQLModel):
+    id: uuid.UUID
+    service_id: uuid.UUID
+    title: str
+    status: IncidentStatus
+    created_at: datetime
+    resolved_at: datetime | None
+
+
+class IncidentsPublic(SQLModel):
+    data: list[IncidentPublic]
     count: int
 
 
