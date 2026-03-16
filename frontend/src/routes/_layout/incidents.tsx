@@ -34,9 +34,7 @@ function Incidents() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Incidents</h1>
-          <p className="text-muted-foreground">
-            Manage and track incidents
-          </p>
+          <p className="text-muted-foreground">Manage and track incidents</p>
         </div>
         <AddIncident />
       </div>

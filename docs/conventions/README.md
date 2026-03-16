@@ -13,6 +13,7 @@
 | [git.md](git.md) | Git | все | Коммиты, ветки, PR |
 | [testing.md](testing.md) | Testing | developer, qa-engineer, devops | Тесты, workflow, правила |
 | [devops.md](devops.md) | DevOps | devops | Деплой, env vars, Docker, CORS |
+| [deployment.md](deployment.md) | Deployment | devops, developer | Полный гайд: local setup (native + Docker), Vercel, Railway, URLs, troubleshooting |
 
 ## Как использовать
 

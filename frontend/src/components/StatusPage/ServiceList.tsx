@@ -20,8 +20,8 @@ const STATUS_CONFIG: Record<
   },
   degraded: {
     label: "Degraded",
-    dotClass: "bg-yellow-500",
-    textClass: "text-yellow-600 dark:text-yellow-400",
+    dotClass: "bg-amber-500",
+    textClass: "text-amber-600 dark:text-amber-400",
   },
   down: {
     label: "Down",
@@ -46,7 +46,9 @@ function ServiceRow({ service }: { service: ServicePublic }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3">
       <div className="flex items-center gap-3 min-w-0">
-        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${config.dotClass}`} />
+        <span
+          className={`h-2.5 w-2.5 shrink-0 rounded-full ${config.dotClass}`}
+        />
         <span className="font-medium truncate">{service.name}</span>
       </div>
       <div className="flex items-center gap-4">
@@ -77,7 +79,7 @@ export default function ServiceList({ services }: ServiceListProps) {
       {Array.from(categories.entries()).map(([category, categoryServices]) => (
         <Card key={category}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+            <CardTitle className="uppercase tracking-wider text-muted-foreground text-xs font-medium">
               {category}
             </CardTitle>
           </CardHeader>

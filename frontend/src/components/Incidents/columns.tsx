@@ -31,11 +31,7 @@ export const columns: ColumnDef<IncidentPublic>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.status
-      return (
-        <Badge variant={STATUS_VARIANT[status]}>
-          {status}
-        </Badge>
-      )
+      return <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>
     },
   },
   {

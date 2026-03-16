@@ -27,8 +27,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
-import type { ServicePublic } from "@/types/status"
 import useCustomToast from "@/hooks/useCustomToast"
+import type { ServicePublic } from "@/types/status"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
@@ -148,7 +148,11 @@ const EditService = ({ service, onSuccess }: EditServiceProps) => {
                   <FormItem>
                     <FormLabel>Check Interval (seconds)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

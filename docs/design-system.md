@@ -220,14 +220,24 @@ Content padding:      24px (mobile: 16px)
 
 ```
 ┌─────────────────────────┐
-│  ○ Total Services       │   ← subheading, muted color
-│  12                     │   ← stat size, font-bold, text-primary
-│  ▲ 2 from last week    │   ← caption, green/red indicator
+│  Label            [ico] │   ← subheading, muted color + icon pill (top-right)
+│  12                     │   ← stat size (32px), font-bold, font-mono
 └─────────────────────────┘
 ```
 
-- Индикатор тренда: зелёный ▲ / красный ▼
-- Цветной dot/accent слева или сверху для категоризации
+- Иконка в цветном pill (28px, `rounded-lg`), позиция `absolute top-3 right-3`
+- Trend indicator опущен — API не предоставляет данные для исторического сравнения
+
+**4 типа карточек:**
+
+| Карточка | Фон иконки | Цвет иконки | Иконка Lucide |
+|----------|------------|-------------|---------------|
+| Total Services | `bg-muted` | `text-muted-foreground` | `Server` |
+| Operational | `bg-green-500/10` | `text-green-600` | `Check` |
+| Down | `bg-red-500/10` | `text-red-600` | `X` |
+| Active Incidents | `bg-amber-500/10` | `text-amber-600` | `AlertTriangle` |
+
+Цвета icon pill — статусные (намеренно яркие, не меняются между темами).
 
 ### 5.3 Status Badge / Pill
 

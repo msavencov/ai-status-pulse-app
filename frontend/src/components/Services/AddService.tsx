@@ -56,8 +56,7 @@ const AddService = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      axios.post("/api/v1/services/", data),
+    mutationFn: (data: FormData) => axios.post("/api/v1/services/", data),
     onSuccess: () => {
       showSuccessToast("Service created successfully")
       form.reset()
@@ -84,9 +83,7 @@ const AddService = () => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Service</DialogTitle>
-          <DialogDescription>
-            Add a new service to monitor.
-          </DialogDescription>
+          <DialogDescription>Add a new service to monitor.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -115,7 +112,10 @@ const AddService = () => {
                       URL <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="https://example.com/health" {...field} />
+                      <Input
+                        placeholder="https://example.com/health"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,7 +141,11 @@ const AddService = () => {
                   <FormItem>
                     <FormLabel>Check Interval (seconds)</FormLabel>
                     <FormControl>
-                      <Input type="number" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -62,8 +62,8 @@ const DeleteService = ({ id, onSuccess }: DeleteServiceProps) => {
           <DialogHeader>
             <DialogTitle>Delete Service</DialogTitle>
             <DialogDescription>
-              This service and all its health checks will be permanently deleted.
-              Are you sure?
+              This service and all its health checks will be permanently
+              deleted. Are you sure?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">

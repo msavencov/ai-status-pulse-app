@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { LoadingButton } from "@/components/ui/loading-button"
 import {
   Select,
   SelectContent,
@@ -33,9 +34,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { LoadingButton } from "@/components/ui/loading-button"
-import type { ServicesPublic } from "@/types/status"
 import useCustomToast from "@/hooks/useCustomToast"
+import type { ServicesPublic } from "@/types/status"
 import { handleError } from "@/utils"
 
 const formSchema = z.object({
@@ -70,8 +70,7 @@ const AddIncident = () => {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      axios.post("/api/v1/incidents/", data),
+    mutationFn: (data: FormData) => axios.post("/api/v1/incidents/", data),
     onSuccess: () => {
       showSuccessToast("Incident created successfully")
       form.reset()
@@ -113,7 +112,10 @@ const AddIncident = () => {
                     <FormLabel>
                       Service <span className="text-destructive">*</span>
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a service" />
@@ -140,7 +142,10 @@ const AddIncident = () => {
                       Title <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Service is experiencing issues" {...field} />
+                      <Input
+                        placeholder="Service is experiencing issues"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -8,8 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { IncidentPublic, IncidentStatus } from "@/types/status"
 import useCustomToast from "@/hooks/useCustomToast"
+import type { IncidentPublic, IncidentStatus } from "@/types/status"
 
 const STATUSES: IncidentStatus[] = [
   "investigating",

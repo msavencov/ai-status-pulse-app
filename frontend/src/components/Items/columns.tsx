@@ -21,7 +21,7 @@ function CopyId({ id }: { id: string }) {
         onClick={() => copy(id)}
       >
         {isCopied ? (
-          <Check className="size-3 text-green-500" />
+          <Check className="size-3 text-primary" />
         ) : (
           <Copy className="size-3" />
         )}

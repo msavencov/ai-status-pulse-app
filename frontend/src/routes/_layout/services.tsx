@@ -34,9 +34,7 @@ function Services() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Services</h1>
-          <p className="text-muted-foreground">
-            Manage monitored services
-          </p>
+          <p className="text-muted-foreground">Manage monitored services</p>
         </div>
         <AddService />
       </div>

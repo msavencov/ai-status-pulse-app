@@ -47,7 +47,7 @@ export default function UptimeGraph({ checks, days = 30 }: UptimeGraphProps) {
           const pct =
             day.total === 0 ? 100 : Math.round((day.healthy / day.total) * 100)
           let color = "bg-green-500"
-          if (pct < 100 && pct >= 50) color = "bg-yellow-500"
+          if (pct < 100 && pct >= 50) color = "bg-amber-500"
           if (pct < 50) color = "bg-red-500"
           if (day.total === 0) color = "bg-muted"
 

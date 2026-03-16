@@ -1,4 +1,5 @@
-import { AlertTriangle, Home, Server, Users } from "lucide-react"
+import { Link as RouterLink } from "@tanstack/react-router"
+import { AlertTriangle, ExternalLink, Home, Server, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -6,14 +7,19 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
 const baseItems: Item[] = [
-  { icon: Home, title: "Dashboard", path: "/" },
+  { icon: Home, title: "Dashboard", path: "/dashboard" },
   { icon: Server, title: "Services", path: "/services" },
   { icon: AlertTriangle, title: "Incidents", path: "/incidents" },
 ]
@@ -34,6 +40,20 @@ export function AppSidebar() {
         <Main items={items} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Status Page" asChild>
+                  <RouterLink to="/">
+                    <ExternalLink />
+                    <span>Status Page</span>
+                  </RouterLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <SidebarAppearance />
         <User user={currentUser} />
       </SidebarFooter>

@@ -4,7 +4,10 @@ import { Badge } from "@/components/ui/badge"
 import type { ServicePublic, ServiceStatus } from "@/types/status"
 import { ServiceActionsMenu } from "./ServiceActionsMenu"
 
-const STATUS_VARIANT: Record<ServiceStatus, "default" | "secondary" | "destructive"> = {
+const STATUS_VARIANT: Record<
+  ServiceStatus,
+  "default" | "secondary" | "destructive"
+> = {
   operational: "default",
   degraded: "secondary",
   down: "destructive",
@@ -14,9 +17,7 @@ export const columns: ColumnDef<ServicePublic>[] = [
   {
     accessorKey: "name",
     header: "Name",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.name}</span>
-    ),
+    cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
   },
   {
     accessorKey: "url",
@@ -36,11 +37,7 @@ export const columns: ColumnDef<ServicePublic>[] = [
     header: "Status",
     cell: ({ row }) => {
       const status = row.original.current_status
-      return (
-        <Badge variant={STATUS_VARIANT[status]}>
-          {status}
-        </Badge>
-      )
+      return <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>
     },
   },
   {
