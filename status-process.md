@@ -123,3 +123,4 @@
 | 2026-03-16 | Docs added | `docs/help/skill-creator-vs-writing-skills.md` — справочник по различиям skill-creator и writing-skills |
 | 2026-03-16 | Design system | `docs/design-system.md` — дизайн-бук проекта (Dreams Timer ref, OKLCH, Plus Jakarta Sans, dark sidebar) |
 | 2026-03-16 | Agent added | Designer субагент из X0 Framework (core + specialized/design merged, адаптирован). Использует `document-skills:frontend-design` skill |
+| 2026-03-16 | Git commit | feat(infra): Designer agent + design system (6971594) — Designer agent, design-system.md, manifests, research references, CLAUDE.md update |
