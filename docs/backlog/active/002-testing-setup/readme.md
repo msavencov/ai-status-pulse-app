@@ -135,6 +135,27 @@ cd frontend && bunx playwright test --ui   # с UI (для демки!)
 - **GitHub Actions** — показать что при push автоматически запускаются тесты
 - **Локальный pytest** — показать как backend тесты работают
 
+## Заметки из других фичей
+
+### Из 003-frontend-customization (visual redesign)
+
+После реализации фичи 003 следующие страницы будут **удалены**:
+- `/signup` — страница регистрации
+- `/recover-password` — восстановление пароля
+- `/reset-password` — сброс пароля
+
+**Влияние на тесты:**
+- `tests/sign-up.spec.ts` — **УДАЛИТЬ** (страница не существует)
+- `tests/reset-password.spec.ts` — **УДАЛИТЬ** (страница не существует)
+- `tests/login.spec.ts` — **АДАПТИРОВАТЬ**: убрать проверки ссылок на signup/forgot-password
+- `tests/items.spec.ts` — **УДАЛИТЬ** (уже не работает, Items удалены в 001)
+
+Также после 003:
+- `signUpMutation` удалён из `useAuth.ts`
+- Login page содержит только email + password (без ссылок)
+- Публичная страница `/` полностью переделана (StatusPulse branding)
+- Dashboard содержит новые блоки: stat cards с иконками, Recent Activity, Services Overview
+
 ## Зависимости
 
 - bun установлен локально (для Playwright)

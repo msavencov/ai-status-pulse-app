@@ -221,9 +221,7 @@ Each card:
 - Icon: search-minus in indigo pill (48px container, rounded-xl)
 - Heading: "Page not found" — `text-lg font-semibold`
 - Body: "The page you're looking for doesn't exist or has been moved." — `text-sm text-muted-foreground`
-- Two buttons:
-  - "Go Home" — primary (brand indigo), with arrow-left icon
-  - "Status Page" — ghost/outline, links to `/`
+- Single button: "Go Home" — primary (brand indigo), with arrow-left icon, links to `/`
 - fadeIn animation on load
 
 ---

@@ -65,6 +65,14 @@ Skill: superpowers:writing-plans
 
 ## Key Working Rules
 
+### Frontend / Backend Separation (ОБЯЗАТЕЛЬНО)
+- **ВСЕГДА разделяй задачи на Frontend и Backend** — они назначаются РАЗНЫМ субагентам
+- Frontend-задачи: React, Tailwind, shadcn/ui, Vite, Playwright E2E
+- Backend-задачи: FastAPI, SQLModel, Alembic, pytest
+- **НЕ миксуй** FE и BE в одной задаче — даже если они связаны
+- Если FE-задача зависит от BE — укажи зависимость, но это отдельные задачи
+- В плане группируй: сначала все BE-задачи фазы, потом FE-задачи (или наоборот, по зависимостям)
+
 ### Task Granularity
 - **ВСЕ задачи должны быть 1-4 часа** (без исключений!)
 - Если задача >4h → декомпозируй дальше

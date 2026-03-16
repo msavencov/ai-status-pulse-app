@@ -10,3 +10,9 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Superpowers brainstorm artifacts
+.superpowers/
+
+# Empty template stubs
+docs/templates/
