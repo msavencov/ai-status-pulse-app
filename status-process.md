@@ -84,6 +84,8 @@
 |-------|------|----------|
 | DevOps | `.claude/agents/devops.md` | X0 Framework (адаптирован) |
 | Designer | `.claude/agents/designer.md` | X0 Framework (core + specialized/design merged, адаптирован) |
+| Implementation Plan Architect | `.claude/agents/implementation-plan-architect.md` | X0 Framework (адаптирован), режим РОЛИ |
+| Implementation Plan Reviewer | `.claude/agents/implementation-plan-reviewer.md` | X0 Framework (адаптирован), субагент |
 
 ---
 
@@ -124,3 +126,7 @@
 | 2026-03-16 | Design system | `docs/design-system.md` — дизайн-бук проекта (Dreams Timer ref, OKLCH, Plus Jakarta Sans, dark sidebar) |
 | 2026-03-16 | Agent added | Designer субагент из X0 Framework (core + specialized/design merged, адаптирован). Использует `document-skills:frontend-design` skill |
 | 2026-03-16 | Git commit | feat(infra): Designer agent + design system (6971594) — Designer agent, design-system.md, manifests, research references, CLAUDE.md update |
+| 2026-03-16 | Agent added | Implementation Plan Architect из X0 Framework (адаптирован). Режим РОЛИ — brainstorming + writing-plans skills. Промпт + манифесты |
+| 2026-03-16 | Agent added | Implementation Plan Reviewer из X0 Framework (адаптирован). Субагент через Agent tool. Quality gate для планов. Промпт + манифесты |
+| 2026-03-16 | CLAUDE.md | Обновлена секция Subagents: architect (роль) + reviewer (субагент), правила вызова, docs structure |
+| 2026-03-16 | Git commit | feat(infra): add Implementation Plan Architect + Reviewer agents — агенты из X0 Framework, манифесты, CLAUDE.md update |

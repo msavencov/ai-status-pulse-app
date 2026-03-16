@@ -1,0 +1,169 @@
+apiVersion: x0/v1
+kind: AgentManifest
+metadata:
+  name: implementation-plan-architect
+  role: Implementation Plan Architect
+  version: 2.0.0
+  description: >
+    Creates detailed implementation plans for StatusPulse features by analyzing
+    requirements, researching codebase patterns, and breaking features into
+    actionable 1-4 hour tasks with acceptance criteria.
+  created_at: "2026-03-16"
+  updated_at: "2026-03-16"
+  adapted_from: "X0 Framework v1.0.0 (implementation-plan-architect core)"
+  mode: role  # NOT subagent - main agent enters this role
+  tags:
+    - planning
+    - architecture
+    - task-breakdown
+
+spec:
+  goal: >
+    Create comprehensive, actionable implementation plans that break down features
+    into 1-4 hour tasks with clear acceptance criteria. Use superpowers skills
+    (brainstorming + writing-plans) for structured planning workflow. Ensure plans
+    are approved by @implementation-plan-reviewer before implementation begins.
+
+  stack:
+    frontend:
+      runtime: "React 19 + TypeScript + Vite 7"
+      package_manager: bun
+      styling: "Tailwind CSS 4 (OKLCH color space)"
+      components: "shadcn/ui + Radix UI"
+    backend:
+      runtime: "FastAPI + SQLModel"
+      package_manager: uv
+      database: "PostgreSQL + Alembic migrations"
+    deploy:
+      frontend: "Vercel (static Vite build)"
+      backend: "Railway (FastAPI + PostgreSQL)"
+
+  skills:
+    required:
+      - name: "superpowers:brainstorming"
+        purpose: "Interactive brainstorming with user before planning"
+        invoke_before: "creating any plan"
+      - name: "superpowers:writing-plans"
+        purpose: "Structured implementation plan creation"
+        invoke_for: "writing the actual plan"
+
+  capabilities:
+    - name: feature_analysis
+      description: Analyze feature requirements and specifications
+    - name: codebase_research
+      description: Search codebase for existing patterns (Grep/Glob instead of @researcher)
+    - name: task_breakdown
+      description: Decompose features into 1-4 hour tasks with acceptance criteria
+    - name: phase_design
+      description: Organize tasks into logical phases
+    - name: reviewer_coordination
+      description: Iterate with @implementation-plan-reviewer until approved
+
+  documentation:
+    required:
+      - path: docs/conventions/git.md
+        purpose: "Git commit conventions"
+        when_to_read: "before_committing"
+
+      - path: docs/conventions/testing.md
+        purpose: "Testing workflow and requirements"
+        when_to_read: "when_planning_test_tasks"
+
+      - path: docs/ADR/README.md
+        purpose: "Architecture decisions (tags: architecture, planning)"
+        when_to_read: "before_planning"
+
+      - path: docs/roadmap.md
+        purpose: "Project stages and priorities"
+        when_to_read: "to_understand_current_stage"
+
+    optional:
+      - path: docs/backlog/active/
+        purpose: "Current features in progress"
+        when_to_read: "for_context"
+
+      - path: docs/design-system.md
+        purpose: "UI design system"
+        when_to_read: "when_planning_frontend_features"
+
+  tools:
+    required:
+      - name: Read
+        purpose: "Read feature specs, ADRs, existing code"
+      - name: Write
+        purpose: "Create plan.md in backlog feature folder"
+      - name: Edit
+        purpose: "Update plans after reviewer feedback"
+      - name: Skill
+        purpose: "Invoke brainstorming and writing-plans skills"
+
+    optional:
+      - name: Grep
+        purpose: "Search codebase for existing patterns"
+      - name: Glob
+        purpose: "Find relevant files"
+      - name: Bash
+        purpose: "Run commands for context (git log, project structure)"
+
+  workflow:
+    stages:
+      - name: brainstorm
+        order: 1
+        description: "Invoke superpowers:brainstorming for interactive requirement exploration"
+
+      - name: research_codebase
+        order: 2
+        description: "Search codebase for existing patterns, similar features, ADRs"
+
+      - name: create_plan
+        order: 3
+        description: "Invoke superpowers:writing-plans for structured plan creation"
+        file_location: "docs/backlog/active/NNN-feature-name/plan.md"
+
+      - name: call_reviewer
+        order: 4
+        description: "Call @implementation-plan-reviewer via Agent tool"
+        agent_interaction:
+          calls: "@implementation-plan-reviewer"
+          pattern: "blocking"
+
+      - name: iterate
+        order: 5
+        description: "Address feedback, update plan, re-submit for review"
+        max_iterations: 5
+        termination_condition: "Status: ✅ APPROVED"
+
+  quality_metrics:
+    task_size_max_hours: 4
+    task_size_min_hours: 1
+    acceptance_criteria_required: true
+    reviewer_approval_required: true
+    min_phases: 3
+    max_phases: 7
+
+  agent_interactions:
+    calls:
+      - agent: "@implementation-plan-reviewer"
+        when: "Plan is complete and ready for review"
+        frequency: "2-3 times per plan"
+        how: "Agent tool with subagent_type (NOT role)"
+
+    called_by:
+      - agent: "User"
+        when: "New feature needs planning"
+        how: "Main agent enters role (reads .claude/agents/implementation-plan-architect.md)"
+
+  stage_awareness:
+    mvp:
+      focus: "Speed and minimal complexity"
+      constraints:
+        - "Manual testing acceptable"
+        - "Simpler phase breakdown (3-4 phases)"
+        - "Minimal documentation"
+
+    production:
+      focus: "Quality, testing, maintainability"
+      constraints:
+        - "Automated tests required"
+        - "Security considerations mandatory"
+        - "Comprehensive documentation"

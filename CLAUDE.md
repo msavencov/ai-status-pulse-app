@@ -16,6 +16,15 @@ Full-stack web app based on the FastAPI template. Python/FastAPI backend + React
 
 Папка с выжимками прошлых сессий. **При старте новой сессии** — если пользователь просит "прочитай последний session history", прочитай последний файл из этой папки для контекста.
 
+## Дата и время
+
+**Часовой пояс пользователя:** UTC+3 (Europe/Moscow)
+
+**ПРАВИЛО:** Перед созданием или обновлением файлов, где требуется указание даты/времени (session history, changelog, frontmatter, commit messages), **ВСЕГДА проверяй текущее время** командой `date "+%Y-%m-%d %H:%M %Z"`. НЕ угадывай время — Claude не знает текущее время без проверки. Это касается:
+- `session-history/YYYY-MM-DD_HH-MM_slug.md` (имя файла + frontmatter)
+- `status-process.md` (даты в changelog)
+- Любых frontmatter с полями `date`, `time`, `created_at`, `updated_at`
+
 ---
 
 ## Commands
@@ -161,7 +170,11 @@ docs/
 │       ├── devops.md                 ← Детальный воркфлоу DevOps
 │       ├── devops.yaml              ← Метаданные DevOps
 │       ├── designer.md              ← Детальный воркфлоу Designer
-│       └── designer.yaml            ← Метаданные Designer
+│       ├── designer.yaml            ← Метаданные Designer
+│       ├── implementation-plan-architect.md  ← Воркфлоу архитектора планов
+│       ├── implementation-plan-architect.yaml
+│       ├── implementation-plan-reviewer.md   ← Воркфлоу ревьюера планов
+│       └── implementation-plan-reviewer.yaml
 └── agent-learnings/                  ← Лог ошибок и workaround-ов агентов
     └── README.md
 ```
@@ -241,20 +254,27 @@ mv docs/backlog/active/NNN-feature/ docs/backlog/archived/
 
 Субагенты — специализированные AI-агенты для конкретных задач. Файлы `.md` с YAML frontmatter.
 
-### Активные субагенты
+### Активные агенты
 
 | Агент | Файл | Режим | Когда вызывать |
 |-------|------|-------|----------------|
 | **devops** | `.claude/agents/devops.md` | Субагент (Agent tool) | Деплой, инфраструктура, CI/CD, Railway, Vercel |
 | **designer** | `.claude/agents/designer.md` | **Роль** (основной агент) | UI/UX, брендинг, дизайн-система, brainstorming визуала |
+| **implementation-plan-architect** | `.claude/agents/implementation-plan-architect.md` | **Роль** (основной агент) | Планирование фичей, декомпозиция на задачи 1-4h |
+| **implementation-plan-reviewer** | `.claude/agents/implementation-plan-reviewer.md` | Субагент (Agent tool) | Ревью готовых планов, quality gate |
 
 ### Правило вызова
 
-**ВСЕГДА вызывай субагента** через Agent tool когда задача попадает в его зону ответственности:
+**Субагенты (Agent tool)** — вызывай когда задача попадает в зону ответственности:
 - Деплой на Vercel/Railway → `devops` (Agent tool, субагент)
 - Настройка переменных окружения → `devops` (Agent tool, субагент)
 - CI/CD, GitHub Actions → `devops` (Agent tool, субагент)
 - Мониторинг, домены → `devops` (Agent tool, субагент)
+- Ревью готового плана → `implementation-plan-reviewer` (Agent tool, субагент)
+
+**Роли (основной агент входит в роль)** — для задач требующих интерактивного диалога с пользователем:
+- UI/UX дизайн → `designer` (роль)
+- Планирование фичи → `implementation-plan-architect` (роль)
 
 ### Designer — режим РОЛИ (не субагент!)
 
@@ -275,6 +295,36 @@ mv docs/backlog/active/NNN-feature/ docs/backlog/archived/
 - Брендинг, цвета, типографика, layout
 - Brainstorming визуальных решений
 - Создание UI-компонентов (дизайн-фаза)
+
+### Implementation Plan Architect — режим РОЛИ (не субагент!)
+
+**⚠️ Architect НЕ вызывается как субагент.** Основной агент входит в роль:
+
+1. Прочитай `.claude/agents/implementation-plan-architect.md` — прими роль, контекст, принципы
+2. Вызови скилл `superpowers:brainstorming` — для интерактивного исследования требований
+3. Исследуй кодовую базу (Grep/Glob) на предмет существующих паттернов
+4. Вызови скилл `superpowers:writing-plans` — для создания структурированного плана
+5. Вызови `@implementation-plan-reviewer` через Agent tool для ревью плана
+
+**Почему роль, а не субагент:** Architect должен вести диалог с пользователем — уточнять требования, обсуждать trade-offs, согласовывать scope. Субагент не может вести диалог.
+
+**Когда входить в роль architect:**
+- Планирование новой фичи
+- Декомпозиция крупной задачи на подзадачи
+- Создание implementation plan в `docs/backlog/active/`
+
+### Implementation Plan Reviewer — субагент
+
+**Вызывается через Agent tool** когда план готов и нужен ревью:
+
+```
+Agent tool → subagent_type: не указывать (general-purpose)
+Prompt: "Прочитай .claude/agents/implementation-plan-reviewer.md и выполни ревью плана docs/backlog/active/NNN-feature/plan.md"
+```
+
+**Когда вызывать:**
+- План фичи написан и готов к ревью
+- После доработки плана по предыдущему фидбеку
 
 ### Design System
 
