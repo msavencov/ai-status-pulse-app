@@ -73,6 +73,43 @@ Skill: superpowers:writing-plans
 - Если FE-задача зависит от BE — укажи зависимость, но это отдельные задачи
 - В плане группируй: сначала все BE-задачи фазы, потом FE-задачи (или наоборот, по зависимостям)
 
+### Dependencies & Parallelism (ОБЯЗАТЕЛЬНО для каждой задачи)
+
+Каждая задача в плане ДОЛЖНА содержать:
+- **`Depends on:`** — список задач-зависимостей (или `none` если независима)
+- **`Parallel:`** — можно ли запускать параллельно с другими задачами (`yes` / `no` / список задач с которыми параллелится)
+
+**Правила определения параллельности:**
+- Задачи БЕЗ общих зависимостей → **параллельно** (два субагента работают одновременно)
+- FE и BE задачи внутри одной фазы → часто **параллельно** (если FE не ждёт BE endpoint)
+- Задачи с `Depends on: Task X` → **только после** завершения Task X
+- Миграции БД → **всегда последовательно** (одна за другой)
+- Тесты → **после** реализации того, что тестируют
+
+**Пример:**
+```markdown
+#### Task 2.1: [BE] Create Service model + migration
+**Depends on:** Task 1.1 (project setup)
+**Parallel:** yes — can run with Task 2.2
+
+#### Task 2.2: [FE] Create ServiceCard component
+**Depends on:** none (uses mock data)
+**Parallel:** yes — can run with Task 2.1
+
+#### Task 2.3: [FE] Integrate ServiceCard with API
+**Depends on:** Task 2.1 (needs BE endpoint), Task 2.2 (needs component)
+**Parallel:** no
+```
+
+**В конце каждой фазы** добавляй визуальную схему зависимостей:
+```
+Phase 2 dependency graph:
+  2.1 [BE] ──┐
+              ├──→ 2.3 [FE] ──→ 2.4 [FE]
+  2.2 [FE] ──┘
+  2.5 [BE] (independent, parallel with all)
+```
+
 ### Task Granularity
 - **ВСЕ задачи должны быть 1-4 часа** (без исключений!)
 - Если задача >4h → декомпозируй дальше
