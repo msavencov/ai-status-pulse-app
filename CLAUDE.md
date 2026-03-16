@@ -167,6 +167,10 @@ docs/
 ├── design-system.md                  ← Дизайн-бук (цвета, типографика, компоненты)
 ├── manifests/                        ← Манифесты агентов (адаптированные)
 │   └── agents/
+│       ├── frontend-developer.md     ← Воркфлоу Frontend Developer
+│       ├── frontend-developer.yaml  ← Метаданные Frontend Developer
+│       ├── backend-developer.md     ← Воркфлоу Backend Developer
+│       ├── backend-developer.yaml   ← Метаданные Backend Developer
 │       ├── devops.md                 ← Детальный воркфлоу DevOps
 │       ├── devops.yaml              ← Метаданные DevOps
 │       ├── designer.md              ← Детальный воркфлоу Designer
@@ -266,6 +270,8 @@ mv docs/backlog/active/NNN-feature/ docs/backlog/archived/
 
 | Агент | Файл | Режим | Когда вызывать |
 |-------|------|-------|----------------|
+| **frontend-developer** | `.claude/agents/frontend-developer.md` | Субагент (Agent tool) | Frontend-задачи: React компоненты, маршруты, стили, интеграция с API |
+| **backend-developer** | `.claude/agents/backend-developer.md` | Субагент (Agent tool) | Backend-задачи: FastAPI endpoints, SQLModel модели, миграции, тесты |
 | **devops** | `.claude/agents/devops.md` | Субагент (Agent tool) | Деплой, инфраструктура, CI/CD, Railway, Vercel |
 | **designer** | `.claude/agents/designer.md` | **Роль** (основной агент) | UI/UX, брендинг, дизайн-система, brainstorming визуала |
 | **implementation-plan-architect** | `.claude/agents/implementation-plan-architect.md` | **Роль** (основной агент) | Планирование фичей, декомпозиция на задачи 1-4h |
@@ -274,6 +280,8 @@ mv docs/backlog/active/NNN-feature/ docs/backlog/archived/
 ### Правило вызова
 
 **Субагенты (Agent tool)** — вызывай когда задача попадает в зону ответственности:
+- Frontend-задачи из плана → `frontend-developer` (Agent tool, субагент)
+- Backend-задачи из плана → `backend-developer` (Agent tool, субагент)
 - Деплой на Vercel/Railway → `devops` (Agent tool, субагент)
 - Настройка переменных окружения → `devops` (Agent tool, субагент)
 - CI/CD, GitHub Actions → `devops` (Agent tool, субагент)
@@ -283,6 +291,41 @@ mv docs/backlog/active/NNN-feature/ docs/backlog/archived/
 **Роли (основной агент входит в роль)** — для задач требующих интерактивного диалога с пользователем:
 - UI/UX дизайн → `designer` (роль)
 - Планирование фичи → `implementation-plan-architect` (роль)
+
+### Frontend Developer — субагент
+
+**Вызывается через Agent tool** для реализации frontend-задач из implementation plan:
+
+- React 19 компоненты, hooks
+- TanStack Router маршруты
+- TanStack Query data fetching
+- shadcn/ui + Tailwind CSS 4 стили
+- React Hook Form + Zod формы
+- Playwright E2E тесты
+
+**Когда вызывать:**
+- Задачи из плана с тегом `frontend`
+- Новые UI-компоненты, страницы, маршруты
+- Интеграция с API (auto-generated client)
+- Исправление frontend-багов
+
+### Backend Developer — субагент
+
+**Вызывается через Agent tool** для реализации backend-задач из implementation plan:
+
+- FastAPI endpoints
+- SQLModel модели
+- Alembic миграции
+- pytest тесты
+- JWT auth, бизнес-логика
+
+**Объединяет:** core/developer + python-developer из X0 Framework, адаптирован под Python/FastAPI стек проекта.
+
+**Когда вызывать:**
+- Задачи из плана с тегом `backend`
+- Новые API endpoints, модели, миграции
+- Backend тесты (pytest)
+- Исправление backend-багов
 
 ### Designer — режим РОЛИ (не субагент!)
 

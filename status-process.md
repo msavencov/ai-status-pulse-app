@@ -82,6 +82,8 @@
 
 | Агент | Файл | Источник |
 |-------|------|----------|
+| Frontend Developer | `.claude/agents/frontend-developer.md` | X0 Framework (core/developer + typescript-developer merged, адаптирован) |
+| Backend Developer | `.claude/agents/backend-developer.md` | X0 Framework (core/developer + python-developer merged, адаптирован) |
 | DevOps | `.claude/agents/devops.md` | X0 Framework (адаптирован) |
 | Designer | `.claude/agents/designer.md` | X0 Framework (core + specialized/design merged, адаптирован) |
 | Implementation Plan Architect | `.claude/agents/implementation-plan-architect.md` | X0 Framework (адаптирован), режим РОЛИ |
@@ -131,3 +133,6 @@
 | 2026-03-16 | CLAUDE.md | Обновлена секция Subagents: architect (роль) + reviewer (субагент), правила вызова, docs structure |
 | 2026-03-16 | Git commit | feat(infra): add Implementation Plan Architect + Reviewer agents — агенты из X0 Framework, манифесты, CLAUDE.md update |
 | 2026-03-16 | Git commit | docs(backlog): restructure 003-frontend-customization + session history (e23b4b3) — readme.md + visual-design-spec.md вместо design.md + plan.md, session history с исправленным timestamp |
+| 2026-03-16 | Agent added | Frontend Developer из X0 Framework (core/developer + typescript-developer merged, адаптирован под React 19 + Vite 7 + TanStack + shadcn/ui). Субагент. Промпт + манифесты |
+| 2026-03-16 | Agent added | Backend Developer из X0 Framework (core/developer + python-developer merged, адаптирован под FastAPI + SQLModel + uv + pytest). Субагент. Промпт + манифесты |
+| 2026-03-16 | CLAUDE.md | Обновлена секция Subagents: frontend-developer + backend-developer добавлены в таблицу, правила вызова, docs structure |
