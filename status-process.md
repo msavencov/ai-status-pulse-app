@@ -69,6 +69,13 @@
 - **Возможности:** docs search, list projects/deployments, build logs
 - **Ограничение:** `deploy_to_vercel` tool не деплоит (информационный)
 
+### Playwright MCP
+- **Статус:** подключен
+- **Package:** `@playwright/mcp@latest` (npx, stdio)
+- **Возможности:** browser automation через accessibility snapshots (не скриншоты), навигация, клики, заполнение форм, снятие snapshot'ов
+- **Доступ:** QA Engineer субагент (`mcpServers: [playwright]`)
+- **Использование:** exploratory testing, верификация UI фич, интерактивное тестирование
+
 ### Railway MCP
 - **Статус:** подключен, авторизован
 - **Package:** `@railway/mcp-server` (npx, обёртка над CLI)
@@ -88,6 +95,7 @@
 | Designer | `.claude/agents/designer.md` | X0 Framework (core + specialized/design merged, адаптирован) |
 | Implementation Plan Architect | `.claude/agents/implementation-plan-architect.md` | X0 Framework (адаптирован), режим РОЛИ |
 | Implementation Plan Reviewer | `.claude/agents/implementation-plan-reviewer.md` | X0 Framework (адаптирован), субагент |
+| QA Engineer | `.claude/agents/qa-engineer.md` | X0 Framework (адаптирован), субагент. Playwright MCP для browser testing |
 
 ---
 
@@ -142,3 +150,7 @@
 | 2026-03-17 | test | 002-testing-setup: migrate testing from Items to Services/Incidents/HealthChecks — 23 new backend tests, E2E for services + status page, deleted obsolete tests, CI coverage threshold 90%→70% |
 | 2026-03-17 | fix | fix(frontend): shared API client with auth and Vite proxy — frontend/src/lib/api.ts (Axios + JWT), /api dev proxy in vite.config.ts, all admin components updated; backlog 007-fix-admin-api-calls added; commit 30f9860 |
 | 2026-03-17 | archived | 007-fix-admin-api-calls moved to archived (admin 401 interceptor fix) |
+| 2026-03-17 | MCP added | Playwright MCP (`@playwright/mcp@latest`) — browser automation для QA-тестирования |
+| 2026-03-17 | Agent added | QA Engineer из X0 Framework (адаптирован). Субагент: pytest + Playwright + Playwright MCP. Промпт + манифесты |
+| 2026-03-17 | CLAUDE.md | Обновлена секция Subagents: qa-engineer добавлен в таблицу, правила вызова, docs structure |
+| 2026-03-17 | feat | 004-incident-descriptions: description field + IncidentUpdate model + admin expand row + public accordion — deployed to Railway + Vercel |
