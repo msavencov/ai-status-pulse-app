@@ -15,7 +15,7 @@ Self-hosted service status page and uptime monitor. Built for a live demo at the
 - **Infrastructure:** Docker Compose, Traefik
 
 Based on [Full Stack FastAPI Template](https://github.com/fastapi/full-stack-fastapi-template).
-
+Presentation: [Live demo:агент для разработки за 40 мин и презентация курса](https://miro.com/app/board/uXjVGxb2Jm8=/)
 ## Quick Start
 
 ```bash
